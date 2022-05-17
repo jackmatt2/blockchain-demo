@@ -12,11 +12,9 @@ func Mine(data []byte, difficulty int) (string, int) {
 	requiredPrefix := strings.Repeat("0", difficulty)
 	nonse := 0
 	for {
-		var dst []byte
-		dst = append(dst, data...)
-		dst = append(dst, []byte(fmt.Sprintf("%d", nonse))...)
-		v := sha256.Sum256(dst)
-		hash := fmt.Sprintf("%x", v[:])
+		target := append(data, []byte(fmt.Sprintf("%d", nonse))...)
+		sha := sha256.Sum256(target)
+		hash := fmt.Sprintf("%x", sha[:])
 		fmt.Printf("Attempting: %s (%d)\n", hash, nonse)
 		if strings.HasPrefix(hash, requiredPrefix) {
 			return hash, nonse
