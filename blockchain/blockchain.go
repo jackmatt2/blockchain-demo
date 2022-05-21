@@ -1,13 +1,15 @@
 package blockchain
 
 import (
+	"crypto/sha256"
+	"errors"
 	"fmt"
 )
 
 type Blockchain interface {
-	Add(b []byte)
+	Add(data []byte)
 	Print()
-	Validate()
+	Validate() (bool, error)
 	Blocks() []block
 }
 
@@ -24,17 +26,23 @@ type blockchain struct {
 func New(genesis []byte) Blockchain {
 	return &blockchain{
 		blocks: []block{{
-			Hash:       toHash(genesis),
+			Hash:       toHash(genesis, ""),
 			ParentHash: "",
 			Data:       genesis,
 		}},
 	}
 }
 
+func toHash(data []byte, parentHash string) string {
+	input := append(data, []byte(parentHash)...)
+	hash := sha256.Sum256(input)
+	return fmt.Sprintf("%x", hash)
+}
+
 func (b *blockchain) Add(data []byte) {
 	parentBlock := b.blocks[len(b.blocks)-1]
 	newBlock := block{
-		Hash:       toHash(data),
+		Hash:       toHash(data, parentBlock.Hash),
 		ParentHash: parentBlock.Hash,
 		Data:       data,
 	}
@@ -51,22 +59,22 @@ func (b *blockchain) Print() {
 	}
 }
 
-func (b *blockchain) Validate() {
+func (b *blockchain) Validate() (bool, error) {
 	for i := 1; i < len(b.blocks); i++ {
 		currentBlock := b.blocks[i]
 		parentBlock := b.blocks[i-1]
 
 		// Blocks must be in sequence
 		if parentBlock.Hash != currentBlock.ParentHash {
-			panic("has incorrect parent hash")
+			return false, errors.New("has incorrect parent hash")
 		}
 
 		// Data must match hash
-		if currentBlock.Hash != toHash(currentBlock.Data) {
-			panic("has incorrect hash")
+		if currentBlock.Hash != toHash(currentBlock.Data, currentBlock.ParentHash) {
+			return false, errors.New("has incorrect hash")
 		}
 	}
-	fmt.Println("Chain is Valid")
+	return true, nil
 }
 
 func (b *blockchain) Blocks() []block {
