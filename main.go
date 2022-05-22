@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/jackmatt2/blockchain/blockchain"
+	"github.com/jackmatt2/blockchain-demo/blockchain"
 )
 
 func main() {
